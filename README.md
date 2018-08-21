@@ -34,3 +34,6 @@ chance 是否必须中奖
 抽奖结果：每个省不超过2个人，每个公司不超过1个人.
 
 9.抽奖关键表et_user,et_org  关键字段province【区分获奖省份】,company【et_user中区分公司】,name【et_org中区分公司】,isall,iswin,winlevel,chance
+
+
+#完整版：请移步至：https://github.com/imalexyang/ExamStack
