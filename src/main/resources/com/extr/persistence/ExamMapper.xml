@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.extr.persistence.ExamMapper">
+	<insert id="addUserExamHistory" useGeneratedKeys="true"
+		keyProperty="histId" parameterType="com.extr.domain.exam.ExamHistory">
+		insert into
+		et_user_exam_history(user_id,exam_paper_id,content,create_time,answer_sheet,duration)
+		values
+		(#{userId},#{examPaperId},#{content},#{createTime},#{answerSheet},#{duration})
+	</insert>
+
+	<select id="getUserExamHistoryByUserIdAndExamPaperId"
+		resultType="com.extr.domain.exam.ExamHistory">
+		select
+		id histId,user_id userId,exam_paper_id
+		examPaperId,content,create_time createTime,answer_sheet
+		answerSheet,duration,point_get pointGet
+		from et_user_exam_history where user_id=#{userId}
+		and
+		exam_paper_id=#{examPaperId} and submit_time >0
+	</select>
+
+	<select id="getUserExamHistoryByHistId" resultType="com.extr.domain.exam.ExamHistory">
+		select
+		id
+		histId,user_id userId,exam_paper_id
+		examPaperId,content,create_time
+		createTime,answer_sheet answerSheet,duration
+		from et_user_exam_history
+		where id=#{histId}
+	</select>
+
+	<update id="updateExamHistory" parameterType="com.extr.domain.exam.ExamHistory">
+		update
+		et_user_exam_history set
+		content=#{content},answer_sheet=#{answerSheet},point_get=#{pointGet},
+		submit_time=#{submitTime},duration=#{duration}
+		where id=#{histId}
+	</update>
+
+	<select id="getUserExamHistoryListByUserId" resultType="com.extr.domain.exam.ExamHistory">
+		select
+		a.user_id userId,b.name paperName,a.exam_paper_id
+		examPaperId,a.create_time createTime,point_get pointGet from
+		et_user_exam_history a,
+		et_exam_paper b
+		where a.exam_paper_id=b.id and
+		a.user_id=#{userId} and submit_time is not null
+		union ALL
+		select user_id userId,name paperName,-1
+		examPaperId,create_time createTime,0 pointGet from
+		et_practice_paper
+		where user_id=#{userId}
+	</select>
+</mapper>

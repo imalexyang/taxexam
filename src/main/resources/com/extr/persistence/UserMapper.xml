@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.extr.persistence.UserMapper">
+
+	<!-- User -->
+	<insert id="insertUser" useGeneratedKeys="true" keyProperty="id"
+		parameterType="com.extr.domain.user.User">
+		insert into
+		et_user(username,password,email,phone,add_date,expire_date,add_by,enabled,truename,field_id,province,company,department,idcard,address,zipcode,tel,type)
+		value
+		(#{username},#{password},#{email},#{phone},#{create_date},#{expire_date},#{creator},#{enabled},#{truename},#{fieldId},#{province},#{company},#{department},#{idcard},#{address},#{zipcode},#{tel},#{type})
+	</insert>
+	<update id="updateUser" parameterType="com.extr.domain.user.User">
+		update et_user
+		<set>
+
+			<if test="user.truename != null">truename=#{user.truename},</if>
+			<if test="user.password != null">password=#{user.password},</if>
+			<if test="user.email != null">email=#{user.email},</if>
+			<if test="user.phone != null">phone=#{user.phone},</if>
+			<if test="user.create_date != null">add_date=#{user.create_date},</if>
+			<if test="user.expire_date != null">expire_date=#{user.expire_date},</if>
+			<if test="user.creator != null">add_by=#{user.creator},</if>
+			<if test="user.enabled != null">enabled=#{user.enabled},</if>
+			<if test="user.fieldId != 0">field_id=#{user.fieldId},</if>
+			<if test="user.loginTime != null">login_time=#{user.loginTime},</if>
+			<if test="user.lastLoginTime != null">last_login_time=#{user.lastLoginTime},</if>
+			<if test="user.province != 0">province=#{user.province},</if>
+			<if test="user.company != null">company=#{user.company},</if>
+			<if test="user.department != null">department=#{user.department},</if>
+			<if test="user.idcard != null">idcard=#{user.idcard},</if>
+			<if test="user.address != null">address=#{user.address},</if>
+			<if test="user.zipcode != null">zipcode=#{user.zipcode},</if>
+			<if test="user.tel != null">tel=#{user.tel},</if>
+			<if test="user.type != null">type=#{user.type},</if>
+			<if test="user.username != null">username=#{user.username}</if>
+			<if test="user.id != 0">id=#{user.id}</if>
+		</set>
+		<where>
+			(username = #{user.username} or id=#{user.id})
+			<if test="oldpassword != null">
+				and password=#{oldpassword}
+			</if>
+		</where>
+	</update>
+	<delete id="deleteUser" parameterType="com.extr.domain.user.User">
+		delete from et_user where
+		id=#{id}
+	</delete>
+	<select id="getUserById" resultType="com.extr.domain.user.User">
+		select a.id as id,a.username
+		as username,a.truename as truename,
+		a.`password` as `password`,a.email
+		as email,a.phone as phone,
+		a.add_date as create_date,a.expire_date as
+		expire_date,a.add_by as creator,
+		a.enabled as enabled,a.field_id as
+		fieldId,
+		b.field_name as fieldName,
+		a.last_login_time as lastLoginTime,
+		a.login_time as loginTime,province,company,department,idcard,address,zipcode,tel,type,a.status from et_user a,et_field b
+		where
+		id=#{id} and
+		a.field_id=b.field_id
+	</select>
+	<select id="getUserByName" resultType="com.extr.domain.user.User">
+		select a.id as
+		id,a.username as username,a.truename as truename,
+		a.`password` as
+		`password`,a.email as email,a.phone as phone,
+		a.add_date as
+		create_date,a.expire_date as expire_date,a.add_by as creator,
+		a.enabled as enabled,a.field_id as fieldId,
+		b.field_name as
+		fieldName,a.last_login_time as lastLoginTime,
+		a.login_time as loginTime,province,company,department,idcard,address,zipcode,tel,type
+		from et_user a,et_field b where username=#{username}
+		and
+		a.field_id=b.field_id
+	</select>
+	<select id="getAllUserList" resultType="com.extr.domain.user.User">
+		select a.id as
+		id,a.username as username,a.truename as truename,
+		a.`password` as
+		`password`,a.email as email,a.phone as phone,
+		a.add_date as
+		create_date,a.expire_date as expire_date,b.username as creator,(select field_name from et_field where field_id=a.field_id) as fieldName,
+		a.enabled as enabled,province,company,department,idcard,address,zipcode,tel,type from et_user a LEFT JOIN et_user b on
+		a.add_by=b.id order by a.id
+	</select>
+	<insert id="insertRole" useGeneratedKeys="true" keyProperty="id"
+		parameterType="com.extr.domain.user.Role">
+		insert into et_role(authority,name) value
+		(#{authority},#{name})
+	</insert>
+	<update id="updateRole" parameterType="com.extr.domain.user.Role">
+		update et_role
+		<set>
+			<if test="authority != null">authority=#{authority},</if>
+			<if test="name != null">name=#{name},</if>
+		</set>
+		where id = #{id}
+	</update>
+	<update id="updateStatus" parameterType="com.extr.domain.user.User">
+		update et_user
+		<set>
+			<if test="status != null">status=#{status},</if>
+		</set>
+		where id = #{id}
+	</update>
+	<update id="updateIsall" parameterType="com.extr.domain.user.User">
+		update et_user
+		<set>
+			<if test="isall != null">isall=#{isall},</if>
+		</set>	
+		where id = #{id}		
+	</update>
+	<update id="updateIswin" parameterType="com.extr.domain.user.User">
+		update et_user
+		<set>
+			<if test="iswin != null">iswin=#{iswin},</if>
+			<if test="winlevel != null">winlevel=#{winlevel},</if>
+		</set>	
+		where id = #{id}		
+	</update>
+	<delete id="deleteRole" parameterType="com.extr.domain.user.Role">
+		delete from et_role where
+		id=#{id}
+	</delete>
+	<select id="getAllRoleList" resultType="com.extr.domain.user.Role">
+		select * from et_role
+	</select>
+	<insert id="grantUserRole">
+		insert into et_r_user_role(user_id,role_id) value
+		(#{user_id},#{role_id})
+	</insert>
+	<select id="getUserListByRoleId" resultType="com.extr.domain.user.User">
+		select a.id as
+		id,a.username as username,a.truename as truename,
+		a.`password` as
+		`password`,a.email as email,a.phone as phone,
+		a.add_date as
+		create_date,a.expire_date as expire_date,
+		(select username from et_user
+		m where m.id=a.add_by) as creator,(select field_name from et_field where field_id=a.field_id) as fieldName,
+		a.enabled as enabled,province,company,department from et_user
+		a,et_r_user_role b
+		where a.id=b.user_id and
+		b.role_id=#{role_id}
+	</select>
+	<select id="getUserListByRoleIdAndStatus" resultType="com.extr.domain.user.User">
+		select a.id as
+		id,a.username as username,a.truename as truename,
+		a.`password` as
+		`password`,a.email as email,a.phone as phone,
+		a.add_date as
+		create_date,a.expire_date as expire_date,
+		(select username from et_user
+		m where m.id=a.add_by) as creator,(select field_name from et_field where field_id=a.field_id) as fieldName,
+		a.enabled as enabled,province,company,department from et_user
+		a,et_r_user_role b
+		where a.id=b.user_id and
+		b.role_id=#{role_id} and a.status=#{status}
+	</select>
+	<select id="getUserListByIsall" resultType="com.extr.domain.user.User">
+		select a.id as
+		id,a.username as username,a.truename as truename,
+		a.`password` as
+		`password`,a.email as email,a.phone as phone,
+		a.add_date as
+		create_date,a.expire_date as expire_date,
+		(select username from et_user
+		m where m.id=a.add_by) as creator,(select field_name from et_field where field_id=a.field_id) as fieldName,
+		a.enabled as enabled,province,company,department,idcard,address,isall from et_user
+		a,et_r_user_role b
+		where a.id=b.user_id and
+		a.isall=#{isall}
+	</select>
+	<select id="getUserListByIsallAndIswin" resultType="com.extr.domain.user.User">
+		select a.id as
+		id,a.username as username,a.truename as truename,
+		a.`password` as
+		`password`,a.email as email,a.phone as phone,
+		a.add_date as
+		create_date,a.expire_date as expire_date,
+		(select username from et_user
+		m where m.id=a.add_by) as creator,(select field_name from et_field where field_id=a.field_id) as fieldName,
+		a.enabled as enabled,province,company,department,idcard,address,isall,iswin,winlevel,chance from et_user
+		a,et_r_user_role b
+		where a.id=b.user_id and
+		a.isall=#{isall} and a.iswin=#{iswin} order by winlevel
+	</select>
+	<select id="getUserListByIsallAndIswinAndWinlevel" resultType="com.extr.domain.user.User">
+		select a.id as
+		id,a.username as username,a.truename as truename,
+		a.`password` as
+		`password`,a.email as email,a.phone as phone,
+		a.add_date as
+		create_date,a.expire_date as expire_date,
+		(select username from et_user
+		m where m.id=a.add_by) as creator,(select field_name from et_field where field_id=a.field_id) as fieldName,
+		a.enabled as enabled,province,company,department,idcard,address,isall,iswin,winlevel from et_user
+		a,et_r_user_role b
+		where a.id=b.user_id and
+		a.isall=#{isall} and a.iswin=#{iswin} and a.winlevel=#{winlevel} order by winlevel
+	</select>
+	<select id="getRoleListByUserId" resultType="com.extr.domain.user.Role">
+		select c.* from
+		et_user a,et_r_user_role b,et_role c
+		where a.id=b.user_id and
+		b.role_id=c.id and a.id=#{user_id}
+		order by c.name
+	</select>
+	<delete id="deleteUserRoleByUserId">
+		delete from et_r_user_role where user_id=#{user_id}
+	</delete>
+
+	<select id="countWinner" parameterType="map" resultType="java.lang.Integer">
+		select count(1) from et_user 
+		where 1=1 
+		<if test="province != null">
+			and province=#{province}
+		</if>
+		<if test="company != null">
+			and company=#{company}
+		</if>
+		 and iswin='1'
+	</select>
+	
+</mapper>

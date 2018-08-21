@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.extr.persistence.CommentMapper">
+
+
+	<select id="getCommentByQuestionId" resultType="com.extr.domain.question.Comment">
+		select
+		a.comment_id commentId,a.question_id questionId,a.index_id indexId,
+		a.user_id userId,b.username username,a.content_msg
+		contentMsg,a.quoto_id quotoId,
+		a.re_id reId,a.create_time createTime from et_comment a,et_user b
+		where a.user_id=b.id
+		and a.question_id=#{questionId}
+		<if test="indexId != 0">
+			and a.index_id &lt;= #{indexId}
+		</if>
+		order by a.create_time desc
+	</select>
+	
+	<select id="getMaxCommentIndexByQuestionId" resultType="java.lang.Integer">
+		select max(index_id) from et_comment where question_id=#{questionId}
+	</select>
+	
+	<insert id="addComment" useGeneratedKeys="true"
+		keyProperty="commentId" parameterType="com.extr.domain.question.Comment">
+		insert into et_comment(question_id,index_id,user_id,content_msg,quoto_id,re_id)
+		values(
+		#{questionId},#{indexId},#{userId},#{contentMsg},#{quotoId},#{reId}
+		)
+	</insert>
+</mapper>

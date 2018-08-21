@@ -1,0 +1,382 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.extr.persistence.QuestionMapper">
+
+	<select id="getQuestionAnalysisListByIdList" resultType="com.extr.controller.domain.QuestionQueryResult">
+		SELECT a.id
+		questionId,a.content,a.answer,a.analysis,a.question_type_id
+		questionTypeId,a.reference
+		referenceName,a.examing_point
+		examingPoint,b.point_id knowledgePointId,GROUP_CONCAT(d.field_name,' &gt; ',c.point_name,' &gt; ',
+		a.examing_point ,case when a.keyword is null then '' else
+		CONCAT('
+		知识关键点：',a.keyword) end)
+		pointName,GROUP_CONCAT(d.field_name)
+		fieldName
+		from et_question
+		a,et_question_2_point
+		b,et_knowledge_point
+		c,et_field d
+		<where>
+			a.id=b.question_id and
+			b.point_id=c.point_id and
+			c.field_id=d.field_id
+			<if test="array != null">
+				and
+				a.id in
+				<foreach collection="array" open="(" close=")" index="index"
+					item="item" separator=",">
+					#{item}
+				</foreach>
+			</if>
+
+		</where>
+		group by
+		a.id,a.content,a.answer,a.analysis,a.question_type_id,a.reference,
+		a.examing_point,b.point_id
+		order by a.question_type_id,a.id
+	</select>
+
+	<select id="getQuestionAnalysisListByFieldIdList" resultType="com.extr.controller.domain.QuestionQueryResult">
+		SELECT a.id
+		questionId,a.content,a.answer,a.analysis,a.question_type_id
+		questionTypeId,a.reference
+		referenceName,a.examing_point
+		examingPoint,b.point_id knowledgePointId,GROUP_CONCAT(d.field_name,' &gt; ',c.point_name,' &gt; ',
+		a.examing_point ,case when a.keyword is null then '' else
+		CONCAT('
+		知识关键点：',a.keyword) end)
+		pointName,GROUP_CONCAT(d.field_name)
+		fieldName
+		from et_question
+		a,et_question_2_point
+		b,et_knowledge_point
+		c,et_field d
+		<where>
+			a.id=b.question_id and
+			b.point_id=c.point_id and
+			c.field_id=d.field_id
+			<if test="array != null">
+				and
+				d.field_id in
+				<foreach collection="array" open="(" close=")" index="index"
+					item="item" separator=",">
+					#{item}
+				</foreach>
+			</if>
+			<if test="typeIdList != null">
+			    and a.question_type_id in
+			    <foreach collection="typeIdList" open="(" close=")" index="index"
+					item="item" separator=",">
+					#{item}
+				</foreach>
+			</if>
+		</where>
+		group by
+		a.id,a.content,a.answer,a.analysis,a.question_type_id,a.reference,
+		a.examing_point,b.point_id
+		order by a.question_type_id,a.id
+	</select>
+	
+	<select id="getQuestionAnalysisListByPointIdAndTypeId"
+		resultType="com.extr.controller.domain.QuestionQueryResult">
+		SELECT a.id
+		questionId,a.content,a.answer,a.analysis,a.question_type_id
+		questionTypeId,a.reference
+		referenceName,a.examing_point
+		examingPoint,b.point_id knowledgePointId,GROUP_CONCAT(d.field_name,' &gt; ',c.point_name,' &gt; ',
+		case when a.keyword is null then '' else
+		CONCAT('
+		知识关键点：',a.keyword) end)
+		pointName,GROUP_CONCAT(d.field_name)
+		fieldName
+		from et_question
+		a,et_question_2_point
+		b,et_knowledge_point
+		c,et_field d
+		<where>
+			a.id=b.question_id and
+			b.point_id=c.point_id and
+			c.field_id=d.field_id
+			and
+			a.question_type_id=#{typeId}
+			and
+			b.point_id=#{pointId}
+		</where>
+		group by
+		a.id,a.content,a.answer,a.analysis,a.question_type_id,a.reference,
+		a.examing_point,b.point_id
+		order by a.question_type_id,a.id
+	</select>
+
+	<select id="getQuestionListByIdListNew" resultType="com.extr.domain.question.Question">
+		select id,answer,question_type_id,content from et_question
+		<where>
+			id in
+			<foreach collection="array" open="(" close=")" index="index"
+				item="item" separator=",">
+				#{item}
+			</foreach>
+		</where>
+		order by question_type_id,id
+	</select>
+
+	<!-- 通过参考资料、试题类型、题目的数量获取试题 -->
+	<select id="getQuestionListByQuestionTypeIdAndReferenceId"
+		resultType="com.extr.domain.question.Question">
+		select * from (select
+		t1.id,t1.name,t1.content,t1.question_type_id,t1.duration,t1.points,t1.group_id,t1.is_visible,
+		t1.create_time,t1.creator,t1.last_modify,t1.answer,t1.expose_times,t1.right_times,
+		t1.wrong_times,t1.difficulty,t1.keyword from et_question t1
+		<where>
+			t1.question_type_id in(1,2,3)
+			and exists(select 1 from
+			et_question_2_point b,et_knowledge_point c
+			where b.point_id=c.point_id
+			and c.field_id=#{fieldId} and b.question_id=t1.id)
+		</where>
+		ORDER BY rand() LIMIT #{limitNum}) m order by m.id,m.question_type_id
+	</select>
+
+	<select id="getAllField" resultType="com.extr.domain.question.Field">
+		select field_id
+		fieldId,field_name fieldName,memo,state,
+		case when exists(select 1 from et_knowledge_point m where m.field_id=a.field_id) then 0
+		else 1 end removeable
+		from et_field a
+	</select>
+
+	<select id="getKnowledgePointByFieldId" resultType="com.extr.domain.question.KnowledgePoint">
+		select a.point_id pointId,a.point_name pointName,a.field_id
+		fieldId,a.memo,a.state,b.field_name fieldName,
+		case when exists(select 1 from et_question_2_point m where m.point_id=a.point_id) then 0
+		else 1 end removeable
+		from et_knowledge_point a,et_field b
+		<where>
+			a.field_id=b.field_id
+			<if test="fieldId != 0">
+				and a.field_id = #{fieldId}
+			</if>
+		</where>
+	</select>
+
+	<select id="getQuestionTypeList" resultType="com.extr.domain.question.QuestionType">
+		select
+		id,name,subjective from et_question_type
+	</select>
+
+	<select id="getQuestionListByPointId" resultType="com.extr.domain.question.QuestionStruts">
+		select a.id questionId,a.expose_times exposeTimes, c.point_id
+		pointId,a.difficulty difficulty,a.question_type_id questionTypeId,
+		a.right_times rightTimes, a.wrong_times wrongTimes,a.points
+		point,a.keyword from
+		et_question a,et_question_2_point b
+		,et_knowledge_point c
+		<where>
+			a.id=b.question_id and b.point_id=c.point_id
+			<if test="array != null">
+				and c.point_id in
+				<foreach close=")" separator="," open="(" item="item" index="index"
+					collection="array"> #{item} </foreach>
+			</if>
+		</where>
+	</select>
+
+	<select id="getQuestionList" resultType="com.extr.domain.question.Question">
+		select a.*,c.point_name pointName,d.field_name fieldName,e.name
+		questionTypeName, examing_point examingPoint from et_question
+		a,et_question_2_point
+		b,et_knowledge_point
+		c,et_field d,et_question_type
+		e
+		<where>
+			a.id=b.question_id and b.point_id=c.point_id and
+			c.field_id=d.field_id
+			and a.question_type_id=e.id
+			<if test="filter.fieldId != 0">
+				and c.field_id = #{filter.fieldId}
+			</if>
+			<if test="filter.knowledge != 0">
+				and c.point_id = #{filter.knowledge}
+			</if>
+			<if test="filter.questionType != 0">
+				and a.question_type_id = #{filter.questionType}
+			</if>
+			<if test="filter.searchParam != '-1'">
+				and instr(a.name,#{filter.searchParam})&lt;&gt;0
+			</if>
+		</where>
+		order by a.last_modify desc
+	</select>
+
+	<select id="getQuestionByQuestionId" resultType="com.extr.domain.question.Question">
+		select * from et_question
+		<where>
+			id = #{questionId}
+		</where>
+	</select>
+
+	<select id="getQuestionKnowledgePointListByQuestionId"
+		resultType="com.extr.domain.question.KnowledgePoint">
+		select b.point_id pointId,concat(c.field_name,'>',b.point_name)
+		pointName from et_question_2_point a,et_knowledge_point b,et_field c
+		<where>
+			a.point_id=b.point_id and b.field_id=c.field_id
+			and
+			a.question_id=#{questionId}
+		</where>
+	</select>
+
+	<insert id="addQuestionKnowledgePoint">
+		insert into et_question_2_point
+		(question_id,point_id)
+		values
+		(#{questionId},#{pointId})
+	</insert>
+
+	<insert id="insertQuestion" parameterType="com.extr.domain.question.Question"
+		useGeneratedKeys="true" keyProperty="id">
+		insert into et_question
+		(name,content,question_type_id,create_time,creator,
+		answer,analysis,reference,examing_point,keyword,points)
+		values
+		(#{name},#{content},#{question_type_id},#{create_time},#{creator},
+		#{answer},#{analysis},#{referenceName},#{examingPoint},#{keyword},#{points})
+	</insert>
+
+	<delete id="deleteQuestionByQuestionId">
+		delete from et_question where id=#{questionId}
+	</delete>
+
+	<delete id="deleteQuestionPointByQuestionId">
+		delete from et_question_2_point where
+		question_id=#{questionId}
+	</delete>
+
+	<select id="getKnowledgePointByName" resultType="com.extr.domain.question.KnowledgePoint">
+		select
+		a.point_id pointId,a.point_name pointName,a.field_id fieldId from
+		et_knowledge_point a,et_field b
+		where a.field_id=b.field_id
+		and
+		a.point_name=#{pointName} and b.field_name=#{fieldName}
+	</select>
+	
+	<select id="getKnowledgePointByPointNameAndFieldId" resultType="com.extr.domain.question.KnowledgePoint">
+		select
+		a.point_id pointId,a.point_name pointName,a.field_id fieldId from
+		et_knowledge_point a,et_field b
+		where a.field_id=b.field_id
+		and
+		a.point_name=#{pointName} and b.field_id=#{fieldId}
+	</select>
+
+	<insert id="addUserQuestionHistory" parameterType="com.extr.domain.question.UserQuestionHistory"
+		useGeneratedKeys="true" keyProperty="userQuestionHistoryId">
+		insert into
+		et_user_question_history_t(user_id,user_question_hist,modify_time)
+		values
+		(#{userId},#{historyStr},#{modifyTime})
+	</insert>
+	<select id="getUserQuestionHistoryByUserId" resultType="com.extr.domain.question.UserQuestionHistory">
+		select
+		user_question_hist_id userQuestionHistoryId,user_id userId,
+		user_question_hist historyStr,modify_time modifyTime
+		from
+		et_user_question_history_t where user_id=#{userId}
+	</select>
+	<update id="updateUserQuestionHistory" parameterType="com.extr.domain.question.UserQuestionHistory">
+		update
+		et_user_question_history_t set user_question_hist=#{historyStr},
+		modify_time=#{modifyTime} where user_id=#{userId}
+	</update>
+
+	<select id="getQuestionImproveResultByQuestionPointIdList"
+		resultType="com.extr.controller.domain.QuestionImproveResult">
+		select a.point_id questionPointId,a.point_name questionPointName,
+		c.question_type_id questionTypeId,d.`name` questionTypeName,count(1)
+		amount
+		from et_knowledge_point a,et_question_2_point b,et_question
+		c,et_question_type d
+		where a.point_id=b.point_id and b.question_id=c.id
+		and
+		c.question_type_id=d.id
+		and a.point_id in
+		<foreach collection="array" open="(" close=")" index="index"
+			item="item" separator=",">
+			#{item}
+		</foreach>
+		group by a.point_id,a.point_name,c.question_type_id,d.`name`
+	</select>
+	
+	<insert id="addField" parameterType="com.extr.domain.question.Field"
+		useGeneratedKeys="true" keyProperty="fieldId">
+		insert into et_field(field_name,memo,state) values (
+		#{fieldName},#{memo},#{state}
+		)
+	</insert>
+	
+	<insert id="addKnowledgePoint" parameterType="com.extr.domain.question.KnowledgePoint"
+		useGeneratedKeys="true" keyProperty="pointId">
+		insert into et_knowledge_point(point_name,memo,state,field_id) values (
+		#{pointName},#{memo},#{state},#{fieldId}
+		)
+	</insert>
+	
+	<delete id="deleteFieldByIdList">
+		delete from et_field where field_id in
+		<foreach collection="array" open="(" close=")" index="index" item="item" separator=",">
+			#{item}
+		</foreach>
+	</delete>
+	
+	<delete id="deleteKnowledgePointByIdList">
+		delete from et_knowledge_point where point_id in
+		<foreach collection="array" open="(" close=")" index="index" item="item" separator=",">
+			#{item}
+		</foreach>
+	</delete>
+	
+	<select id="getMinFieldId" resultType="Integer">
+		select min(a.field_id) from et_field a,et_knowledge_point b
+		where a.field_id=b.field_id
+	</select>
+	
+	<select id="getTagByUserId" resultType="com.extr.domain.question.Tag">
+		select tag_id tagId,tag_name tagName,is_private privatee,create_time createTime,
+		creator,memo from et_tag where (creator=#{userId} or is_private=0)
+	</select>
+	
+	<insert id="addTag" parameterType="com.extr.domain.question.Tag" useGeneratedKeys="true"
+	keyProperty="tagId">
+		insert into et_tag(tag_name,creator,memo,is_private)
+		values
+		(#{tagName},#{creator},#{memo},#{privatee})
+	</insert>
+	
+	<select id="getQuestionTagByQuestionIdAndUserId" resultType="com.extr.domain.question.QuestionTag">
+		select tag_id tagId,tag_name tagName,is_private privatee,create_time createTime,
+		creator,memo from et_tag where (creator=#{userId} or is_private=0)
+		and tag_id in(select tag_id from et_question_2_tag where question_id=#{questionId})
+	</select>
+	
+	<insert id="addQuestionTag" parameterType="com.extr.domain.question.QuestionTag" useGeneratedKeys="true">
+		replace into et_question_2_tag(question_id,tag_id,creator)
+		values
+		<foreach collection="array" index="index" item="item" open="" close="" separator=",">
+			(#{item.questionId},#{item.tagId},#{item.creator})
+		</foreach>
+		
+	</insert>
+	
+	<delete id="deleteQuestionTag">
+		delete from et_question_2_tag where tag_id not in
+		<foreach collection="array" index="index" item="item" open="(" close=")" separator=",">
+			#{item}
+		</foreach>
+		 and question_id=#{questionId}
+		 
+	</delete>
+</mapper>

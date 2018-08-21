@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.extr.persistence.PracticeMapper">
+
+	<select id="getPracticePaperByUserID" resultType="com.extr.domain.exam.PracticePaper">
+		SELECT
+		id,name,user_id
+		userId,content,create_time,duration,pass_point,total_point,status,summary,is_visible,answer_sheet,group_id,
+		is_subjective,creator
+		FROM
+		et_practice_paper a
+		<where>
+			a.user_id=#{userId}
+		</where>
+
+	</select>
+	<insert id="insertPracticePaper" useGeneratedKeys="true"
+		keyProperty="id" parameterType="com.extr.domain.exam.PracticePaper">
+		insert into
+		et_practice_paper(name,user_id,content,duration,pass_point,total_point,status,summary,is_visible,answer_sheet,group_id,
+		is_subjective,creator)
+		value
+		(#{name},#{userId},#{content},#{duration},#{pass_point},#{total_point},#{status},#{summary},#{is_visible},#{answer_sheet},#{group_id},
+		#{is_subjective},#{creator})
+	</insert>
+	
+	<delete id="deletePracticePaperByUserId">
+		delete from et_practice_paper where user_id=#{userId}
+	</delete>
+</mapper>
